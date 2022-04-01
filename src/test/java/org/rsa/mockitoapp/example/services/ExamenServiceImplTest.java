@@ -6,12 +6,11 @@ import org.rsa.mockitoapp.example.daos.ExamenDao;
 import org.rsa.mockitoapp.example.daos.PreguntaDao;
 import org.rsa.mockitoapp.example.models.Examen;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,12 +31,7 @@ class ExamenServiceImplTest {
 
     @Test
     void finExamenByNombre() {
-        List<Examen> datos = Arrays.asList(
-                new Examen(5L, "Matemáticas"),
-                new Examen(6L, "Lenguaje"),
-                new Examen(7L, "Historia"));
-
-        when(this.examenDao.finAll()).thenReturn(datos);
+        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
 
         Optional<Examen> examen = this.examenService.findExamenByNombre("Matemáticas");
 
@@ -48,13 +42,22 @@ class ExamenServiceImplTest {
 
     @Test
     void finExamenByNombreListaVacia() {
-        List<Examen> datos = Collections.emptyList();
-
-        when(this.examenDao.finAll()).thenReturn(datos);
+        when(this.examenDao.finAll()).thenReturn(Collections.emptyList());
 
         Optional<Examen> examen = this.examenService.findExamenByNombre("Matemáticas");
 
         assertFalse(examen.isPresent());
+    }
+
+    @Test
+    void testPreguntasExamen() {
+        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+        when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+
+        Examen examen = this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+
+        assertEquals(5, examen.getPreguntas().size());
+        assertTrue(examen.getPreguntas().contains("Integrales"));
     }
 
 }
