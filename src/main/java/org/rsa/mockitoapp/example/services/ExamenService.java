@@ -8,4 +8,6 @@ public interface ExamenService {
 
     Optional<Examen> findExamenByNombre(String nombre);
 
+    Examen findExamenByNombreWithPreguntas(String nombre);
+
 }
