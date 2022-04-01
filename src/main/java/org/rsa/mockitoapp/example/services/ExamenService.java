@@ -2,8 +2,10 @@ package org.rsa.mockitoapp.example.services;
 
 import org.rsa.mockitoapp.example.models.Examen;
 
+import java.util.Optional;
+
 public interface ExamenService {
 
-    Examen finExamenByNombre(String nombre);
+    Optional<Examen> findExamenByNombre(String nombre);
 
 }
