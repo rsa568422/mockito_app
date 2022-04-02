@@ -1,7 +1,10 @@
 package org.rsa.mockitoapp.example.services;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.rsa.mockitoapp.example.daos.ExamenDao;
 import org.rsa.mockitoapp.example.daos.PreguntaDao;
 import org.rsa.mockitoapp.example.models.Examen;
@@ -11,22 +14,20 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class ExamenServiceImplTest {
 
+    @InjectMocks
+    ExamenServiceImpl examenService;
+
+    @Mock
     ExamenDao examenDao;
 
+    @Mock
     PreguntaDao preguntaDao;
-
-    ExamenService examenService;
-
-    @BeforeEach
-    void setUp() {
-        this.examenDao = mock(ExamenDao.class);
-        this.preguntaDao = mock(PreguntaDao.class);
-        this.examenService = new ExamenServiceImpl(this.examenDao, this.preguntaDao);
-    }
 
     @Test
     void finExamenByNombre() {
