@@ -17,4 +17,9 @@ public class ExamenDaoAlt implements ExamenDao {
         }
         return null;
     }
+
+    @Override
+    public Examen guardar(Examen examen) {
+        return null;
+    }
 }

@@ -8,4 +8,6 @@ public interface ExamenDao {
 
     List<Examen> finAll();
 
+    Examen guardar(Examen examen);
+
 }

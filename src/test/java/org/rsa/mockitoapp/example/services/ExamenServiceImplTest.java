@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -83,6 +83,22 @@ class ExamenServiceImplTest {
         assertNull(examen);
         verify(this.examenDao).finAll();
         verify(this.preguntaDao).findPreguntaByExamenId(5L);
+    }
+
+    @Test
+    void testGuardarExamen() {
+        Examen newExamen = Datos.EXAMEN;
+        newExamen.setPreguntas(Datos.PREGUNTAS);
+
+        when(this.examenDao.guardar(any(Examen.class))).thenReturn(Datos.EXAMEN);
+
+        Examen examen = this.examenService.guardar(newExamen);
+
+        assertNotNull(examen.getId());
+        assertEquals(8L, examen.getId());
+        assertEquals("Física", examen.getNombre());
+        verify(this.examenDao).guardar(any(Examen.class));
+        verify(this.preguntaDao).guardarVarias(anyList());
     }
 
 }

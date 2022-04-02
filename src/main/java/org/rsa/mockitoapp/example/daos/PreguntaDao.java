@@ -6,4 +6,6 @@ public interface PreguntaDao {
 
     List<String> findPreguntaByExamenId(Long id);
 
+    void guardarVarias(List<String> preguntas);
+
 }
