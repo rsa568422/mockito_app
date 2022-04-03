@@ -13,7 +13,7 @@ public class Datos {
             new Examen(7L, "Historia")
     );
 
-    public final static Examen EXAMEN = new Examen(8L, "Física");
+    public final static Examen EXAMEN = new Examen(null, "Física");
 
     public final static List<String> PREGUNTAS = Arrays.asList(
             "Aritmética",
