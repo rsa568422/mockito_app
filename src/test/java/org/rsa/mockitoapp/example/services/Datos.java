@@ -13,6 +13,12 @@ public class Datos {
             new Examen(7L, "Historia")
     );
 
+    public final static List<Examen> EXAMENES_ID_NULL = Arrays.asList(
+            new Examen(null, "Matemáticas"),
+            new Examen(null, "Lenguaje"),
+            new Examen(null, "Historia")
+    );
+
     public final static Examen EXAMEN = new Examen(null, "Física");
 
     public final static List<String> PREGUNTAS = Arrays.asList(
