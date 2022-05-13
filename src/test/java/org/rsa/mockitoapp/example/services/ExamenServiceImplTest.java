@@ -128,4 +128,16 @@ class ExamenServiceImplTest {
         verify(this.preguntaDao).findPreguntaByExamenId(isNull());
     }
 
+    @Test
+    void testArgumentMatchers() {
+        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+        when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+
+        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+
+        verify(this.examenDao).finAll();
+        verify(this.preguntaDao).findPreguntaByExamenId(eq(5L));
+        verify(this.preguntaDao).findPreguntaByExamenId(argThat(arg -> arg != null && arg.compareTo(5L) >= 0));
+    }
+
 }
