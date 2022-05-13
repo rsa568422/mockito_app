@@ -2,6 +2,7 @@ package org.rsa.mockitoapp.example.services;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
@@ -138,6 +139,45 @@ class ExamenServiceImplTest {
         verify(this.examenDao).finAll();
         verify(this.preguntaDao).findPreguntaByExamenId(eq(5L));
         verify(this.preguntaDao).findPreguntaByExamenId(argThat(arg -> arg != null && arg.compareTo(5L) >= 0));
+    }
+
+    @Test
+    void testArgumentMatchers2() {
+        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+        when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+
+        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+
+        verify(this.examenDao).finAll();
+        verify(this.preguntaDao).findPreguntaByExamenId(argThat(new MiArgsMatchers()));
+    }
+
+    @Test
+    void testArgumentMatchers3() {
+        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+        when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+
+        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+
+        verify(this.examenDao).finAll();
+        verify(this.preguntaDao).findPreguntaByExamenId(argThat(argument -> argument != null && argument > 0));
+    }
+
+    public static class MiArgsMatchers implements ArgumentMatcher<Long> {
+
+        private Long argument;
+
+        @Override
+        public boolean matches(Long argument) {
+            this.argument = argument;
+            return this.argument != null && this.argument > 0;
+        }
+
+        @Override
+        public String toString() {
+            return "es para un mensaje personalizado de error que imprime mockito en caso de que falle el test, "
+                    .concat(String.format("debe ser un número entero positivo: %d", this.argument));
+        }
     }
 
 }
