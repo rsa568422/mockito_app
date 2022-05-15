@@ -203,4 +203,50 @@ class ExamenServiceImplTest {
         assertThrows(IllegalArgumentException.class, () -> this.examenService.guardar(examen));
     }
 
+    @Test
+    void testDoAnswer() {
+        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+        //when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        doAnswer(invocation -> {
+            Long id = invocation.getArgument(0);
+            return id == 5L ? Datos.PREGUNTAS : Collections.EMPTY_LIST;
+        }).when(this.preguntaDao).findPreguntaByExamenId(anyLong());
+
+        Examen examen = this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+
+        assertAll(() -> assertEquals(5L, examen.getId()),
+                  () -> assertTrue(examen.getPreguntas().contains("Integrales")),
+                  () -> assertEquals("Matemáticas", examen.getNombre()),
+                  () -> assertEquals(5, examen.getPreguntas().size()));
+
+        verify(this.preguntaDao).findPreguntaByExamenId(anyLong());
+    }
+
+    @Test
+    void testDoAnswerGuardarExamen() {
+        // Given
+        Examen newExamen = Datos.EXAMEN;
+        newExamen.setPreguntas(Datos.PREGUNTAS);
+
+        doAnswer(new Answer<Examen>() {
+            Long secuencia = 8L;
+            @Override
+            public Examen answer(InvocationOnMock invocation) throws Throwable {
+                Examen examen = invocation.getArgument(0);
+                examen.setId(secuencia++);
+                return examen;
+            }
+        }).when(this.examenDao).guardar(any(Examen.class));
+
+        // When
+        Examen examen = this.examenService.guardar(newExamen);
+
+        // Then
+        assertNotNull(examen.getId());
+        assertEquals(8L, examen.getId());
+        assertEquals("Física", examen.getNombre());
+        verify(this.examenDao).guardar(any(Examen.class));
+        verify(this.preguntaDao).guardarVarias(anyList());
+    }
+
 }
