@@ -2,9 +2,7 @@ package org.rsa.mockitoapp.example.services;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatcher;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
@@ -31,6 +29,9 @@ class ExamenServiceImplTest {
 
     @Mock
     PreguntaDao preguntaDao;
+
+    @Captor
+    ArgumentCaptor<Long> captor;
 
     @Test
     void finExamenByNombre() {
@@ -178,6 +179,19 @@ class ExamenServiceImplTest {
             return "es para un mensaje personalizado de error que imprime mockito en caso de que falle el test, "
                     .concat(String.format("debe ser un número entero positivo: %d", this.argument));
         }
+    }
+
+    @Test
+    void testArgumentCaptor() {
+        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+        when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+
+        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+
+        //ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
+        verify(this.preguntaDao).findPreguntaByExamenId(this.captor.capture());
+
+        assertEquals(5L, captor.getValue());
     }
 
 }
