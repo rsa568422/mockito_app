@@ -1,4 +1,4 @@
-package org.rsa.mockitoapp.example.services;
+package org.rsa.mockitoapp.example;
 
 import org.rsa.mockitoapp.example.models.Examen;
 

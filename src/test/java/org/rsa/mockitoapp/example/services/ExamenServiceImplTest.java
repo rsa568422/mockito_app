@@ -6,8 +6,11 @@ import org.mockito.*;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.rsa.mockitoapp.example.Datos;
 import org.rsa.mockitoapp.example.daos.ExamenDao;
+import org.rsa.mockitoapp.example.daos.ExamenDaoImpl;
 import org.rsa.mockitoapp.example.daos.PreguntaDao;
+import org.rsa.mockitoapp.example.daos.PreguntaDaoImpl;
 import org.rsa.mockitoapp.example.models.Examen;
 
 import java.util.Collections;
@@ -24,10 +27,10 @@ class ExamenServiceImplTest {
     ExamenServiceImpl examenService;
 
     @Mock
-    ExamenDao examenDao;
+    ExamenDaoImpl examenDao;
 
     @Mock
-    PreguntaDao preguntaDao;
+    PreguntaDaoImpl preguntaDao;
 
     @Captor
     ArgumentCaptor<Long> captor;
@@ -247,6 +250,18 @@ class ExamenServiceImplTest {
         assertEquals("Física", examen.getNombre());
         verify(this.examenDao).guardar(any(Examen.class));
         verify(this.preguntaDao).guardarVarias(anyList());
+    }
+
+    @Test
+    void testDoCallRealMethod() {
+        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+        //when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        doCallRealMethod().when(this.preguntaDao).findPreguntaByExamenId(anyLong());
+
+        Examen examen = this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+
+        assertEquals(5l, examen.getId());
+        assertEquals("Matemáticas", examen.getNombre());
     }
 
 }
