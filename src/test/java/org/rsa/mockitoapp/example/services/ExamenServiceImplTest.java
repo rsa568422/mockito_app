@@ -286,4 +286,30 @@ class ExamenServiceImplTest {
         verify(preguntaDao).findPreguntaByExamenId(anyLong());
     }
 
+    @Test
+    void testOrdenDeInvocaciones() {
+        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+
+        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+        this.examenService.findExamenByNombreWithPreguntas("Lenguaje");
+
+        InOrder inOrder = inOrder(this.preguntaDao);
+        inOrder.verify(this.preguntaDao).findPreguntaByExamenId(5L);
+        inOrder.verify(this.preguntaDao).findPreguntaByExamenId(6L);
+    }
+
+    @Test
+    void testOrdenDeInvocaciones2() {
+        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+
+        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+        this.examenService.findExamenByNombreWithPreguntas("Lenguaje");
+
+        InOrder inOrder = inOrder(this.examenDao, this.preguntaDao);
+        inOrder.verify(this.examenDao).finAll();
+        inOrder.verify(this.preguntaDao).findPreguntaByExamenId(5L);
+        inOrder.verify(this.examenDao).finAll();
+        inOrder.verify(this.preguntaDao).findPreguntaByExamenId(6L);
+    }
+
 }
