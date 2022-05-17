@@ -11,7 +11,6 @@ public class ExamenDaoImpl implements ExamenDao {
     @Override
     public List<Examen> finAll() {
         try {
-            System.out.println("ExamenDaoAlt");
             TimeUnit.SECONDS.sleep(5);
         } catch (InterruptedException e) {
             e.printStackTrace();

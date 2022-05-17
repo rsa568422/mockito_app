@@ -14,6 +14,7 @@ import org.rsa.mockitoapp.example.daos.PreguntaDaoImpl;
 import org.rsa.mockitoapp.example.models.Examen;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -103,7 +104,7 @@ class ExamenServiceImplTest {
         when(this.examenDao.guardar(any(Examen.class))).then(new Answer<Examen>() {
             Long secuencia = 8L;
             @Override
-            public Examen answer(InvocationOnMock invocation) throws Throwable {
+            public Examen answer(InvocationOnMock invocation) {
                 Examen examen = invocation.getArgument(0);
                 examen.setId(secuencia++);
                 return examen;
@@ -234,7 +235,7 @@ class ExamenServiceImplTest {
         doAnswer(new Answer<Examen>() {
             Long secuencia = 8L;
             @Override
-            public Examen answer(InvocationOnMock invocation) throws Throwable {
+            public Examen answer(InvocationOnMock invocation) {
                 Examen examen = invocation.getArgument(0);
                 examen.setId(secuencia++);
                 return examen;
@@ -260,8 +261,29 @@ class ExamenServiceImplTest {
 
         Examen examen = this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
 
-        assertEquals(5l, examen.getId());
+        assertEquals(5L, examen.getId());
         assertEquals("Matemáticas", examen.getNombre());
+    }
+
+    @Test
+    void testSpy() {
+        //ExamenDao examenDao = mock(ExamenDao.class);
+        ExamenDao examenDao = spy(ExamenDaoImpl.class);
+        PreguntaDao preguntaDao = spy(PreguntaDaoImpl.class);
+        ExamenService examenService = new ExamenServiceImpl(examenDao, preguntaDao);
+
+        List<String> preguntas = List.of("Aritmética");
+        //when(preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(preguntas);
+        doReturn(preguntas).when(preguntaDao).findPreguntaByExamenId(anyLong());
+
+        Examen examen = examenService.findExamenByNombreWithPreguntas("Matemáticas");
+
+        assertEquals(5L, examen.getId());
+        assertEquals("Matemáticas", examen.getNombre());
+        assertEquals(1, examen.getPreguntas().size());
+        assertTrue(examen.getPreguntas().contains("Aritmética"));
+        verify(examenDao).finAll();
+        verify(preguntaDao).findPreguntaByExamenId(anyLong());
     }
 
 }
