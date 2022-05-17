@@ -312,4 +312,47 @@ class ExamenServiceImplTest {
         inOrder.verify(this.preguntaDao).findPreguntaByExamenId(6L);
     }
 
+    @Test
+    void testNumeroDeInvocaciones() {
+        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+
+        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+
+        verify(this.preguntaDao).findPreguntaByExamenId(5L);
+        verify(this.preguntaDao, times(1)).findPreguntaByExamenId(5L);
+        verify(this.preguntaDao, atLeast(1)).findPreguntaByExamenId(5L);
+        verify(this.preguntaDao, atLeastOnce()).findPreguntaByExamenId(5L);
+        verify(this.preguntaDao, atMost(1)).findPreguntaByExamenId(5L);
+        verify(this.preguntaDao, atMostOnce()).findPreguntaByExamenId(5L);
+    }
+
+    @Test
+    void testNumeroDeInvocaciones2() {
+        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+
+        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+
+        assertAll(
+                () -> verify(this.preguntaDao, times(2)).findPreguntaByExamenId(5L),
+                () -> verify(this.preguntaDao, atLeast(1)).findPreguntaByExamenId(5L),
+                () -> verify(this.preguntaDao, atLeastOnce()).findPreguntaByExamenId(5L),
+                () -> verify(this.preguntaDao, atMost(3)).findPreguntaByExamenId(5L)
+        );
+    }
+
+    @Test
+    void testNumeroDeInvocaciones3() {
+        when(this.examenDao.finAll()).thenReturn(Collections.emptyList());
+
+        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+
+        verify(this.preguntaDao, never()).findPreguntaByExamenId(5L);
+        verifyNoInteractions(this.preguntaDao);
+        verify(this.examenDao, times(1)).finAll();
+        verify(this.examenDao, atLeast(1)).finAll();
+        verify(this.examenDao, atLeastOnce()).finAll();
+        verify(this.examenDao, atMost(1)).finAll();
+        verify(this.examenDao, atMostOnce()).finAll();
+    }
+
 }

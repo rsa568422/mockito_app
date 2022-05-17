@@ -9,9 +9,9 @@ import java.util.Optional;
 
 public class ExamenServiceImpl implements ExamenService {
 
-    private ExamenDao examenDao;
+    private final ExamenDao examenDao;
 
-    private PreguntaDao preguntaDao;
+    private final PreguntaDao preguntaDao;
 
     public ExamenServiceImpl(ExamenDao examenDao, PreguntaDao preguntaDao) {
         this.examenDao = examenDao;
@@ -34,6 +34,7 @@ public class ExamenServiceImpl implements ExamenService {
         if (examenOptional.isPresent()) {
             examen = examenOptional.orElseThrow();
             List<String> preguntas = this.preguntaDao.findPreguntaByExamenId(examen.getId());
+            this.preguntaDao.findPreguntaByExamenId(examen.getId());
             examen.setPreguntas(preguntas);
         }
         return examen;
