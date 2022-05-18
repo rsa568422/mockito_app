@@ -1,5 +1,6 @@
 package org.rsa.mockitoapp.example.services;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -7,92 +8,100 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.rsa.mockitoapp.example.Datos;
-import org.rsa.mockitoapp.example.daos.ExamenDao;
-import org.rsa.mockitoapp.example.daos.ExamenDaoImpl;
-import org.rsa.mockitoapp.example.daos.PreguntaDao;
-import org.rsa.mockitoapp.example.daos.PreguntaDaoImpl;
 import org.rsa.mockitoapp.example.models.Examen;
+import org.rsa.mockitoapp.example.repositories.ExamenRepository;
+import org.rsa.mockitoapp.example.repositories.ExamenRepositoryImpl;
+import org.rsa.mockitoapp.example.repositories.PreguntaRepository;
+import org.rsa.mockitoapp.example.repositories.PreguntaRepositoryImpl;
 
+import static org.mockito.Mockito.*;
+
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ExamenServiceImplTest {
 
+    @Mock
+    ExamenRepositoryImpl repository;
+
+    @Mock
+    PreguntaRepositoryImpl preguntaRepository;
+
     @InjectMocks
-    ExamenServiceImpl examenService;
-
-    @Mock
-    ExamenDaoImpl examenDao;
-
-    @Mock
-    PreguntaDaoImpl preguntaDao;
+    ExamenServiceImpl service;
 
     @Captor
     ArgumentCaptor<Long> captor;
 
-    @Test
-    void finExamenByNombre() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
-
-        Optional<Examen> examen = this.examenService.findExamenByNombre("Matemáticas");
-
-        assertTrue(examen.isPresent());
-        assertEquals(5L, examen.orElseThrow().getId());
-        assertEquals("Matemáticas", examen.orElseThrow().getNombre());
+    @BeforeEach
+    void setUp() {
+//        MockitoAnnotations.openMocks(this);
+//        repository = mock(ExamenRepositoryImpl.class);
+//        preguntaRepository = mock(PreguntaRepositoryImpl.class);
+//        service = new ExamenServiceImpl(repository, preguntaRepository);
     }
 
     @Test
-    void finExamenByNombreListaVacia() {
-        when(this.examenDao.finAll()).thenReturn(Collections.emptyList());
+    void findExamenPorNombre() {
 
-        Optional<Examen> examen = this.examenService.findExamenByNombre("Matemáticas");
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
+        Optional<Examen> examen = service.findExamenPorNombre("Matemáticas");
+
+        assertTrue(examen.isPresent());
+        assertEquals(5L, examen.orElseThrow().getId());
+        assertEquals("Matemáticas", examen.get().getNombre());
+    }
+
+    @Test
+    void findExamenPorNombreListaVacia() {
+        List<Examen> datos = Collections.emptyList();
+
+        when(repository.findAll()).thenReturn(datos);
+        Optional<Examen> examen = service.findExamenPorNombre("Matemáticas");
 
         assertFalse(examen.isPresent());
     }
 
     @Test
     void testPreguntasExamen() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
-        when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
-
-        Examen examen = this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
-
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
+        when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        Examen examen = service.findExamenPorNombreConPreguntas("Matemáticas");
         assertEquals(5, examen.getPreguntas().size());
-        assertTrue(examen.getPreguntas().contains("Integrales"));
+        assertTrue(examen.getPreguntas().contains("integrales"));
+
     }
 
     @Test
     void testPreguntasExamenVerify() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
-        when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
-
-        Examen examen = this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
-
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
+        when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        Examen examen = service.findExamenPorNombreConPreguntas("Matemáticas");
         assertEquals(5, examen.getPreguntas().size());
-        assertTrue(examen.getPreguntas().contains("Integrales"));
-        verify(this.examenDao).finAll();
-        verify(this.preguntaDao).findPreguntaByExamenId(anyLong());
+        assertTrue(examen.getPreguntas().contains("integrales"));
+        verify(repository).findAll();
+        verify(preguntaRepository).findPreguntasPorExamenId(anyLong());
+
     }
 
     @Test
     void testNoExisteExamenVerify() {
-        // Given
-        when(this.examenDao.finAll()).thenReturn(Collections.emptyList());
-        when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        // given
+        when(repository.findAll()).thenReturn(Collections.emptyList());
+        when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
 
-        // When
-        Examen examen = this.examenService.findExamenByNombreWithPreguntas("Inexistente");
+        //when
+        Examen examen = service.findExamenPorNombreConPreguntas("Matemáticas");
 
-        // Then
+        //then
         assertNull(examen);
-        verify(this.examenDao).finAll();
-        verify(this.preguntaDao).findPreguntaByExamenId(5L);
+        verify(repository).findAll();
+        verify(preguntaRepository).findPreguntasPorExamenId(5L);
     }
 
     @Test
@@ -101,10 +110,12 @@ class ExamenServiceImplTest {
         Examen newExamen = Datos.EXAMEN;
         newExamen.setPreguntas(Datos.PREGUNTAS);
 
-        when(this.examenDao.guardar(any(Examen.class))).then(new Answer<Examen>() {
+        when(repository.guardar(any(Examen.class))).then(new Answer<Examen>(){
+
             Long secuencia = 8L;
+
             @Override
-            public Examen answer(InvocationOnMock invocation) {
+            public Examen answer(InvocationOnMock invocation) throws Throwable {
                 Examen examen = invocation.getArgument(0);
                 examen.setId(secuencia++);
                 return examen;
@@ -112,87 +123,92 @@ class ExamenServiceImplTest {
         });
 
         // When
-        Examen examen = this.examenService.guardar(newExamen);
+        Examen examen = service.guardar(newExamen);
 
         // Then
         assertNotNull(examen.getId());
         assertEquals(8L, examen.getId());
         assertEquals("Física", examen.getNombre());
-        verify(this.examenDao).guardar(any(Examen.class));
-        verify(this.preguntaDao).guardarVarias(anyList());
+
+        verify(repository).guardar(any(Examen.class));
+        verify(preguntaRepository).guardarVarias(anyList());
     }
 
     @Test
     void testManejoException() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES_ID_NULL);
-        when(this.preguntaDao.findPreguntaByExamenId(isNull())).thenThrow(IllegalArgumentException.class);
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> this.examenService.findExamenByNombreWithPreguntas("Matemáticas"));
+        when(repository.findAll()).thenReturn(Datos.EXAMENES_ID_NULL);
+        when(preguntaRepository.findPreguntasPorExamenId(isNull())).thenThrow(new IllegalArgumentException());
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            service.findExamenPorNombreConPreguntas("Matemáticas");
+        });
         assertEquals(IllegalArgumentException.class, exception.getClass());
-        verify(this.examenDao).finAll();
-        verify(this.preguntaDao).findPreguntaByExamenId(isNull());
+
+        verify(repository).findAll();
+        verify(preguntaRepository).findPreguntasPorExamenId(isNull());
+
     }
 
     @Test
     void testArgumentMatchers() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
-        when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
+        when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        service.findExamenPorNombreConPreguntas("Matemáticas");
 
-        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+        verify(repository).findAll();
+//        verify(preguntaRepository).findPreguntasPorExamenId(argThat(arg -> arg != null && arg.equals(5L)));
+        verify(preguntaRepository).findPreguntasPorExamenId(argThat(arg -> arg != null && arg >= 5L));
+//        verify(preguntaRepository).findPreguntasPorExamenId(eq(5L));
 
-        verify(this.examenDao).finAll();
-        verify(this.preguntaDao).findPreguntaByExamenId(eq(5L));
-        verify(this.preguntaDao).findPreguntaByExamenId(argThat(arg -> arg != null && arg.compareTo(5L) >= 0));
     }
 
     @Test
     void testArgumentMatchers2() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
-        when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        when(repository.findAll()).thenReturn(Datos.EXAMENES_ID_NEGATIVOS);
+        when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        service.findExamenPorNombreConPreguntas("Matemáticas");
 
-        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+        verify(repository).findAll();
+        verify(preguntaRepository).findPreguntasPorExamenId(argThat(new MiArgsMatchers()));
 
-        verify(this.examenDao).finAll();
-        verify(this.preguntaDao).findPreguntaByExamenId(argThat(new MiArgsMatchers()));
     }
 
     @Test
     void testArgumentMatchers3() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
-        when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        when(repository.findAll()).thenReturn(Datos.EXAMENES_ID_NEGATIVOS);
+        when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        service.findExamenPorNombreConPreguntas("Matemáticas");
 
-        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+        verify(repository).findAll();
+        verify(preguntaRepository).findPreguntasPorExamenId(argThat( (argument) -> argument != null && argument > 0));
 
-        verify(this.examenDao).finAll();
-        verify(this.preguntaDao).findPreguntaByExamenId(argThat(argument -> argument != null && argument > 0));
     }
 
-    public static class MiArgsMatchers implements ArgumentMatcher<Long> {
+    public static class MiArgsMatchers implements ArgumentMatcher<Long>{
 
         private Long argument;
 
         @Override
         public boolean matches(Long argument) {
             this.argument = argument;
-            return this.argument != null && this.argument > 0;
+            return argument != null && argument > 0;
         }
 
         @Override
         public String toString() {
-            return "es para un mensaje personalizado de error que imprime mockito en caso de que falle el test, "
-                    .concat(String.format("debe ser un número entero positivo: %d", this.argument));
+            return "es para un mensaje personalizado de error " +
+                    "que imprime mockito en caso de que falle el test "
+                    + argument + " debe ser un entero positivo";
         }
     }
 
     @Test
     void testArgumentCaptor() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
-        when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
-
-        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
+//        when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        service.findExamenPorNombreConPreguntas("Matemáticas");
 
         //ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
-        verify(this.preguntaDao).findPreguntaByExamenId(this.captor.capture());
+        verify(preguntaRepository).findPreguntasPorExamenId(captor.capture());
 
         assertEquals(5L, captor.getValue());
     }
@@ -201,29 +217,29 @@ class ExamenServiceImplTest {
     void testDoThrow() {
         Examen examen = Datos.EXAMEN;
         examen.setPreguntas(Datos.PREGUNTAS);
+        doThrow(IllegalArgumentException.class).when(preguntaRepository).guardarVarias(anyList());
 
-        doThrow(IllegalArgumentException.class).when(this.preguntaDao).guardarVarias(anyList());
-
-        assertThrows(IllegalArgumentException.class, () -> this.examenService.guardar(examen));
+        assertThrows(IllegalArgumentException.class, () -> {
+            service.guardar(examen);
+        });
     }
 
     @Test
     void testDoAnswer() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
-        //when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
+//        when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
         doAnswer(invocation -> {
             Long id = invocation.getArgument(0);
-            return id == 5L ? Datos.PREGUNTAS : Collections.EMPTY_LIST;
-        }).when(this.preguntaDao).findPreguntaByExamenId(anyLong());
+            return id == 5L? Datos.PREGUNTAS: Collections.emptyList();
+        }).when(preguntaRepository).findPreguntasPorExamenId(anyLong());
 
-        Examen examen = this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+        Examen examen = service.findExamenPorNombreConPreguntas("Matemáticas");
+        assertEquals(5, examen.getPreguntas().size());
+        assertTrue(examen.getPreguntas().contains("geometría"));
+        assertEquals(5L, examen.getId());
+        assertEquals("Matemáticas", examen.getNombre());
 
-        assertAll(() -> assertEquals(5L, examen.getId()),
-                  () -> assertTrue(examen.getPreguntas().contains("Integrales")),
-                  () -> assertEquals("Matemáticas", examen.getNombre()),
-                  () -> assertEquals(5, examen.getPreguntas().size()));
-
-        verify(this.preguntaDao).findPreguntaByExamenId(anyLong());
+        verify(preguntaRepository).findPreguntasPorExamenId(anyLong());
     }
 
     @Test
@@ -232,127 +248,129 @@ class ExamenServiceImplTest {
         Examen newExamen = Datos.EXAMEN;
         newExamen.setPreguntas(Datos.PREGUNTAS);
 
-        doAnswer(new Answer<Examen>() {
+        doAnswer(new Answer<Examen>(){
+
             Long secuencia = 8L;
+
             @Override
-            public Examen answer(InvocationOnMock invocation) {
+            public Examen answer(InvocationOnMock invocation) throws Throwable {
                 Examen examen = invocation.getArgument(0);
                 examen.setId(secuencia++);
                 return examen;
             }
-        }).when(this.examenDao).guardar(any(Examen.class));
+        }).when(repository).guardar(any(Examen.class));
 
         // When
-        Examen examen = this.examenService.guardar(newExamen);
+        Examen examen = service.guardar(newExamen);
 
         // Then
         assertNotNull(examen.getId());
         assertEquals(8L, examen.getId());
         assertEquals("Física", examen.getNombre());
-        verify(this.examenDao).guardar(any(Examen.class));
-        verify(this.preguntaDao).guardarVarias(anyList());
+
+        verify(repository).guardar(any(Examen.class));
+        verify(preguntaRepository).guardarVarias(anyList());
     }
 
     @Test
     void testDoCallRealMethod() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
-        //when(this.preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
-        doCallRealMethod().when(this.preguntaDao).findPreguntaByExamenId(anyLong());
-
-        Examen examen = this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
-
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
+//        when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        doCallRealMethod().when(preguntaRepository).findPreguntasPorExamenId(anyLong());
+        Examen examen = service.findExamenPorNombreConPreguntas("Matemáticas");
         assertEquals(5L, examen.getId());
         assertEquals("Matemáticas", examen.getNombre());
+
     }
 
     @Test
     void testSpy() {
-        //ExamenDao examenDao = mock(ExamenDao.class);
-        ExamenDao examenDao = spy(ExamenDaoImpl.class);
-        PreguntaDao preguntaDao = spy(PreguntaDaoImpl.class);
-        ExamenService examenService = new ExamenServiceImpl(examenDao, preguntaDao);
+        ExamenRepository examenRepository = spy(ExamenRepositoryImpl.class);
+        PreguntaRepository preguntaRepository = spy(PreguntaRepositoryImpl.class);
+        ExamenService examenService = new ExamenServiceImpl(examenRepository, preguntaRepository);
 
-        List<String> preguntas = List.of("Aritmética");
-        //when(preguntaDao.findPreguntaByExamenId(anyLong())).thenReturn(preguntas);
-        doReturn(preguntas).when(preguntaDao).findPreguntaByExamenId(anyLong());
+        List<String> preguntas = Arrays.asList("aritmética");
+//        when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(preguntas);
+        doReturn(preguntas).when(preguntaRepository).findPreguntasPorExamenId(anyLong());
 
-        Examen examen = examenService.findExamenByNombreWithPreguntas("Matemáticas");
-
-        assertEquals(5L, examen.getId());
+        Examen examen = examenService.findExamenPorNombreConPreguntas("Matemáticas");
+        assertEquals(5, examen.getId());
         assertEquals("Matemáticas", examen.getNombre());
         assertEquals(1, examen.getPreguntas().size());
-        assertTrue(examen.getPreguntas().contains("Aritmética"));
-        verify(examenDao).finAll();
-        verify(preguntaDao).findPreguntaByExamenId(anyLong());
+        assertTrue(examen.getPreguntas().contains("aritmética"));
+
+        verify(examenRepository).findAll();
+        verify(preguntaRepository).findPreguntasPorExamenId(anyLong());
     }
 
     @Test
     void testOrdenDeInvocaciones() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
 
-        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
-        this.examenService.findExamenByNombreWithPreguntas("Lenguaje");
+        service.findExamenPorNombreConPreguntas("Matemáticas");
+        service.findExamenPorNombreConPreguntas("Lenguaje");
 
-        InOrder inOrder = inOrder(this.preguntaDao);
-        inOrder.verify(this.preguntaDao).findPreguntaByExamenId(5L);
-        inOrder.verify(this.preguntaDao).findPreguntaByExamenId(6L);
+        InOrder inOrder = inOrder(preguntaRepository);
+        inOrder.verify(preguntaRepository).findPreguntasPorExamenId(5L);
+        inOrder.verify(preguntaRepository).findPreguntasPorExamenId(6L);
+
     }
 
     @Test
     void testOrdenDeInvocaciones2() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
 
-        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
-        this.examenService.findExamenByNombreWithPreguntas("Lenguaje");
+        service.findExamenPorNombreConPreguntas("Matemáticas");
+        service.findExamenPorNombreConPreguntas("Lenguaje");
 
-        InOrder inOrder = inOrder(this.examenDao, this.preguntaDao);
-        inOrder.verify(this.examenDao).finAll();
-        inOrder.verify(this.preguntaDao).findPreguntaByExamenId(5L);
-        inOrder.verify(this.examenDao).finAll();
-        inOrder.verify(this.preguntaDao).findPreguntaByExamenId(6L);
+        InOrder inOrder = inOrder(repository, preguntaRepository);
+        inOrder.verify(repository).findAll();
+        inOrder.verify(preguntaRepository).findPreguntasPorExamenId(5L);
+
+        inOrder.verify(repository).findAll();
+        inOrder.verify(preguntaRepository).findPreguntasPorExamenId(6L);
+
     }
 
     @Test
     void testNumeroDeInvocaciones() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
+        service.findExamenPorNombreConPreguntas("Matemáticas");
 
-        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
-
-        verify(this.preguntaDao).findPreguntaByExamenId(5L);
-        verify(this.preguntaDao, times(1)).findPreguntaByExamenId(5L);
-        verify(this.preguntaDao, atLeast(1)).findPreguntaByExamenId(5L);
-        verify(this.preguntaDao, atLeastOnce()).findPreguntaByExamenId(5L);
-        verify(this.preguntaDao, atMost(1)).findPreguntaByExamenId(5L);
-        verify(this.preguntaDao, atMostOnce()).findPreguntaByExamenId(5L);
+        verify(preguntaRepository).findPreguntasPorExamenId(5L);
+        verify(preguntaRepository, times(1)).findPreguntasPorExamenId(5L);
+        verify(preguntaRepository, atLeast(1)).findPreguntasPorExamenId(5L);
+        verify(preguntaRepository, atLeastOnce()).findPreguntasPorExamenId(5L);
+        verify(preguntaRepository, atMost(1)).findPreguntasPorExamenId(5L);
+        verify(preguntaRepository, atMostOnce()).findPreguntasPorExamenId(5L);
     }
 
     @Test
     void testNumeroDeInvocaciones2() {
-        when(this.examenDao.finAll()).thenReturn(Datos.EXAMENES);
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
+        service.findExamenPorNombreConPreguntas("Matemáticas");
 
-        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
-
-        assertAll(
-                () -> verify(this.preguntaDao, times(2)).findPreguntaByExamenId(5L),
-                () -> verify(this.preguntaDao, atLeast(1)).findPreguntaByExamenId(5L),
-                () -> verify(this.preguntaDao, atLeastOnce()).findPreguntaByExamenId(5L),
-                () -> verify(this.preguntaDao, atMost(3)).findPreguntaByExamenId(5L)
-        );
+//        verify(preguntaRepository).findPreguntasPorExamenId(5L); falla
+        verify(preguntaRepository, times(2)).findPreguntasPorExamenId(5L);
+        verify(preguntaRepository, atLeast(2)).findPreguntasPorExamenId(5L);
+        verify(preguntaRepository, atLeastOnce()).findPreguntasPorExamenId(5L);
+        verify(preguntaRepository, atMost(20)).findPreguntasPorExamenId(5L);
+//        verify(preguntaRepository, atMostOnce()).findPreguntasPorExamenId(5L); falla
     }
 
     @Test
-    void testNumeroDeInvocaciones3() {
-        when(this.examenDao.finAll()).thenReturn(Collections.emptyList());
+    void testNumeroInvocaciones3() {
+        when(repository.findAll()).thenReturn(Collections.emptyList());
+        service.findExamenPorNombreConPreguntas("Matemáticas");
 
-        this.examenService.findExamenByNombreWithPreguntas("Matemáticas");
+        verify(preguntaRepository, never()).findPreguntasPorExamenId(5L);
+        verifyNoInteractions(preguntaRepository);
 
-        verify(this.preguntaDao, never()).findPreguntaByExamenId(5L);
-        verifyNoInteractions(this.preguntaDao);
-        verify(this.examenDao, times(1)).finAll();
-        verify(this.examenDao, atLeast(1)).finAll();
-        verify(this.examenDao, atLeastOnce()).finAll();
-        verify(this.examenDao, atMost(1)).finAll();
-        verify(this.examenDao, atMostOnce()).finAll();
+        verify(repository).findAll();
+        verify(repository, times(1)).findAll();
+        verify(repository, atLeast(1)).findAll();
+        verify(repository, atLeastOnce()).findAll();
+        verify(repository, atMost(10)).findAll();
+        verify(repository, atMostOnce()).findAll();
     }
-
 }

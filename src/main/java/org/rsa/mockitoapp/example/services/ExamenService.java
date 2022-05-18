@@ -5,11 +5,9 @@ import org.rsa.mockitoapp.example.models.Examen;
 import java.util.Optional;
 
 public interface ExamenService {
+    Optional<Examen> findExamenPorNombre(String nombre);
 
-    Optional<Examen> findExamenByNombre(String nombre);
-
-    Examen findExamenByNombreWithPreguntas(String nombre);
+    Examen findExamenPorNombreConPreguntas(String nombre);
 
     Examen guardar(Examen examen);
-
 }

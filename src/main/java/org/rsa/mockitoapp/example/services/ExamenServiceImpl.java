@@ -1,40 +1,37 @@
 package org.rsa.mockitoapp.example.services;
 
-import org.rsa.mockitoapp.example.daos.ExamenDao;
-import org.rsa.mockitoapp.example.daos.PreguntaDao;
 import org.rsa.mockitoapp.example.models.Examen;
+import org.rsa.mockitoapp.example.repositories.ExamenRepository;
+import org.rsa.mockitoapp.example.repositories.PreguntaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
 public class ExamenServiceImpl implements ExamenService {
+    private ExamenRepository examenRepository;
+    private PreguntaRepository preguntaRepository;
 
-    private final ExamenDao examenDao;
-
-    private final PreguntaDao preguntaDao;
-
-    public ExamenServiceImpl(ExamenDao examenDao, PreguntaDao preguntaDao) {
-        this.examenDao = examenDao;
-        this.preguntaDao = preguntaDao;
+    public ExamenServiceImpl(ExamenRepository examenRepository, PreguntaRepository preguntaRepository) {
+        this.examenRepository = examenRepository;
+        this.preguntaRepository = preguntaRepository;
     }
 
     @Override
-    public Optional<Examen> findExamenByNombre(String nombre) {
-        return this.examenDao
-                .finAll()
+    public Optional<Examen> findExamenPorNombre(String nombre) {
+        return examenRepository.findAll()
                 .stream()
-                .filter(examen -> examen.getNombre().contains(nombre))
-                .findAny();
+                .filter(e -> e.getNombre().contains(nombre))
+                .findFirst();
     }
 
     @Override
-    public Examen findExamenByNombreWithPreguntas(String nombre) {
-        Optional<Examen> examenOptional = this.findExamenByNombre(nombre);
+    public Examen findExamenPorNombreConPreguntas(String nombre) {
+        Optional<Examen> examenOptional = findExamenPorNombre(nombre);
         Examen examen = null;
         if (examenOptional.isPresent()) {
             examen = examenOptional.orElseThrow();
-            List<String> preguntas = this.preguntaDao.findPreguntaByExamenId(examen.getId());
-            this.preguntaDao.findPreguntaByExamenId(examen.getId());
+            List<String> preguntas = preguntaRepository.findPreguntasPorExamenId(examen.getId());
+            preguntaRepository.findPreguntasPorExamenId(examen.getId());
             examen.setPreguntas(preguntas);
         }
         return examen;
@@ -42,10 +39,9 @@ public class ExamenServiceImpl implements ExamenService {
 
     @Override
     public Examen guardar(Examen examen) {
-        if (!examen.getPreguntas().isEmpty()) {
-            this.preguntaDao.guardarVarias(examen.getPreguntas());
+        if(!examen.getPreguntas().isEmpty()){
+            preguntaRepository.guardarVarias(examen.getPreguntas());
         }
-        return this.examenDao.guardar(examen);
+        return examenRepository.guardar(examen);
     }
-
 }
